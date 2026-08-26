@@ -1,0 +1,57 @@
+<main class="task-form">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ isEditMode() ? 'Editar tarefa' : 'Nova tarefa' }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (loading()) {
+        <p>Carregando…</p>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <mat-form-field appearance="outline">
+            <mat-label>Título</mat-label>
+            <input matInput formControlName="title" maxlength="200" />
+            @if (form.controls.title.hasError('required')) {
+              <mat-error>Informe o título.</mat-error>
+            } @else if (form.controls.title.hasError('maxlength')) {
+              <mat-error>O título deve ter no máximo 200 caracteres.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Descrição</mat-label>
+            <textarea matInput formControlName="description" maxlength="2000" rows="4"></textarea>
+            @if (form.controls.description.hasError('maxlength')) {
+              <mat-error>A descrição deve ter no máximo 2000 caracteres.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              @for (option of statusOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          @if (errorMessage()) {
+            <p class="error" role="alert">{{ errorMessage() }}</p>
+          }
+
+          <div class="actions">
+            <button mat-stroked-button type="button" (click)="cancel()">Cancelar</button>
+            <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+              @if (submitting()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                Salvar
+              }
+            </button>
+          </div>
+        </form>
+      }
+    </mat-card-content>
+  </mat-card>
+</main>

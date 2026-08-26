@@ -1,0 +1,8 @@
+<h2 mat-dialog-title>Excluir tarefa</h2>
+<mat-dialog-content>
+  Tem certeza que deseja excluir "{{ data.taskTitle }}"? Essa ação não pode ser desfeita.
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="cancel()">Cancelar</button>
+  <button mat-flat-button color="warn" (click)="confirm()">Excluir</button>
+</mat-dialog-actions>

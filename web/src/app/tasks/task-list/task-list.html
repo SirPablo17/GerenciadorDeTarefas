@@ -1,0 +1,59 @@
+<mat-toolbar color="primary">
+  <span>Minhas tarefas</span>
+  <span class="spacer"></span>
+  <button mat-button (click)="newTask()">
+    <mat-icon>add</mat-icon>
+    Nova tarefa
+  </button>
+  <button mat-button (click)="logout()">
+    <mat-icon>logout</mat-icon>
+    Sair
+  </button>
+</mat-toolbar>
+
+<main class="task-list">
+  @if (tasksService.loading()) {
+    <p>Carregando tarefas…</p>
+  } @else if (tasksService.error()) {
+    <div class="error" role="alert">
+      <p>Não foi possível carregar suas tarefas.</p>
+      <button mat-stroked-button (click)="retry()">Tentar novamente</button>
+    </div>
+  } @else if (tasksService.tasks()?.length === 0) {
+    <p>Você ainda não tem tarefas.</p>
+  } @else {
+    @for (task of tasksService.tasks(); track task.id) {
+      <mat-card class="task">
+        <mat-card-header>
+          <mat-card-title>{{ task.title }}</mat-card-title>
+        </mat-card-header>
+        @if (task.description) {
+          <mat-card-content>
+            <p>{{ task.description }}</p>
+          </mat-card-content>
+        }
+        <mat-card-actions>
+          <mat-form-field appearance="outline" class="status-field">
+            <mat-label>Status</mat-label>
+            <mat-select
+              [value]="task.status"
+              (selectionChange)="changeStatus(task, $event.value)"
+            >
+              @for (option of statusOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button mat-button (click)="editTask(task.id)">
+            <mat-icon>edit</mat-icon>
+            Editar
+          </button>
+          <button mat-button color="warn" (click)="deleteTask(task)">
+            <mat-icon>delete</mat-icon>
+            Excluir
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    }
+  }
+</main>
