@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GerenciadorDeTarefas.Api/GerenciadorDeTarefas.Api.csproj" />
+    <Project Path="src/GerenciadorDeTarefas.Application/GerenciadorDeTarefas.Application.csproj" />
+    <Project Path="src/GerenciadorDeTarefas.Domain/GerenciadorDeTarefas.Domain.csproj" />
+    <Project Path="src/GerenciadorDeTarefas.Infrastructure/GerenciadorDeTarefas.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GerenciadorDeTarefas.Tests/GerenciadorDeTarefas.Tests.csproj" />
+  </Folder>
+</Solution>
