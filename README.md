@@ -34,7 +34,7 @@ Neste repositório:
 
 **Frontend** (`web/`):
 - **Angular 22**, standalone components + signals (sem NgRx)
-- **Angular Material** (`@angular/material` + `@angular/cdk`) como biblioteca de UI
+- **Tailwind CSS + DaisyUI** (tema customizado `gerenciador-dark` em `web/src/styles.css`) como biblioteca de UI
 - **Reactive Forms** para os formulários (login, cadastro, tarefa)
 - **Vitest** (via `@angular/build:unit-test`) para testes unitários
 
@@ -124,4 +124,4 @@ O `proxy.conf.js` encaminha `/auth` e `/tasks` para `http://localhost:5246` (a A
 Para ver o fluxo de Spec Driven Development em detalhe, explore:
 
 - `openspec/specs/user-auth/spec.md`, `openspec/specs/task-management/spec.md` e `openspec/specs/task-management-ui/spec.md` — o que o sistema faz hoje.
-- `openspec/changes/archive/` — como cada funcionalidade foi proposta, especificada, desenhada e implementada. A change `add-web-login-and-task-list` cobre a fatia inicial do frontend (login + lista); `add-material-design-and-full-crud`, em `openspec/changes/` (ainda não arquivada), cobre o Angular Material e o CRUD completo.
+- `openspec/changes/archive/` — como cada funcionalidade foi proposta, especificada, desenhada e implementada. A change `add-web-login-and-task-list` cobre a fatia inicial do frontend (login + lista); `add-material-design-and-full-crud` cobre o CRUD completo (inicialmente com Angular Material); `redesign-frontend-tailwind-daisyui` substitui o Angular Material por Tailwind CSS + DaisyUI, chegando ao visual atual do app.
