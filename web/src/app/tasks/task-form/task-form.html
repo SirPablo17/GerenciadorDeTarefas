@@ -1,57 +1,77 @@
-<main class="task-form">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>{{ isEditMode() ? 'Editar tarefa' : 'Nova tarefa' }}</mat-card-title>
-    </mat-card-header>
+<main class="min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-lg">
+    <div class="card bg-base-200 shadow-lg">
+      <div class="card-body">
+        <h1 class="text-xl font-medium mb-2">{{ isEditMode() ? 'Editar tarefa' : 'Nova tarefa' }}</h1>
 
-    <mat-card-content>
-      @if (loading()) {
-        <p>Carregando…</p>
-      } @else {
-        <form [formGroup]="form" (ngSubmit)="submit()">
-          <mat-form-field appearance="outline">
-            <mat-label>Título</mat-label>
-            <input matInput formControlName="title" maxlength="200" />
-            @if (form.controls.title.hasError('required')) {
-              <mat-error>Informe o título.</mat-error>
-            } @else if (form.controls.title.hasError('maxlength')) {
-              <mat-error>O título deve ter no máximo 200 caracteres.</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Descrição</mat-label>
-            <textarea matInput formControlName="description" maxlength="2000" rows="4"></textarea>
-            @if (form.controls.description.hasError('maxlength')) {
-              <mat-error>A descrição deve ter no máximo 2000 caracteres.</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Status</mat-label>
-            <mat-select formControlName="status">
-              @for (option of statusOptions; track option.value) {
-                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        @if (loading()) {
+          <p class="text-base-content/70">Carregando…</p>
+        } @else {
+          <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-5">
+            <div>
+              <label class="label" for="task-title">Título</label>
+              <input
+                id="task-title"
+                type="text"
+                formControlName="title"
+                maxlength="200"
+                class="input w-full"
+                [class.input-error]="form.controls.title.invalid && form.controls.title.touched"
+              />
+              @if (form.controls.title.touched && form.controls.title.hasError('required')) {
+                <p class="text-error text-xs mt-1">Informe o título.</p>
+              } @else if (form.controls.title.touched && form.controls.title.hasError('maxlength')) {
+                <p class="text-error text-xs mt-1">O título deve ter no máximo 200 caracteres.</p>
               }
-            </mat-select>
-          </mat-form-field>
+            </div>
 
-          @if (errorMessage()) {
-            <p class="error" role="alert">{{ errorMessage() }}</p>
-          }
-
-          <div class="actions">
-            <button mat-stroked-button type="button" (click)="cancel()">Cancelar</button>
-            <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
-              @if (submitting()) {
-                <mat-spinner diameter="20" />
-              } @else {
-                Salvar
+            <div>
+              <label class="label" for="task-description">Descrição</label>
+              <textarea
+                id="task-description"
+                formControlName="description"
+                maxlength="2000"
+                rows="4"
+                class="input w-full h-auto py-2"
+                [class.input-error]="form.controls.description.invalid && form.controls.description.touched"
+              ></textarea>
+              @if (form.controls.description.touched && form.controls.description.hasError('maxlength')) {
+                <p class="text-error text-xs mt-1">A descrição deve ter no máximo 2000 caracteres.</p>
               }
-            </button>
-          </div>
-        </form>
-      }
-    </mat-card-content>
-  </mat-card>
+            </div>
+
+            <div>
+              <label class="label" id="task-status-label">Status</label>
+              <div class="join" role="radiogroup" aria-labelledby="task-status-label">
+                @for (option of statusOptions; track option.value) {
+                  <input
+                    type="radio"
+                    class="join-item btn btn-sm"
+                    [attr.aria-label]="option.label"
+                    formControlName="status"
+                    [value]="option.value"
+                  />
+                }
+              </div>
+            </div>
+
+            @if (errorMessage()) {
+              <p class="text-error text-sm" role="alert">{{ errorMessage() }}</p>
+            }
+
+            <div class="flex justify-end gap-3 flex-wrap mt-1">
+              <button type="button" class="btn btn-outline" (click)="cancel()">Cancelar</button>
+              <button type="submit" class="btn btn-outline btn-primary" [disabled]="submitting()">
+                @if (submitting()) {
+                  <span class="loading loading-spinner loading-sm"></span>
+                } @else {
+                  Salvar
+                }
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    </div>
+  </div>
 </main>

@@ -1,1 +1,67 @@
-/* You can add global styles to this file, and also import other style files */
+@import "tailwindcss";
+@plugin "daisyui";
+
+/*
+ * Palette sampled from the nocturne design-system tokens under
+ * prototipo/_ds (the approved prototype), not invented here. Buttons,
+ * inputs and cards in that system are outline/flat, with no filled
+ * surfaces beyond cards and dialogs. Its validation-error color is a
+ * light purple (accent-300), not red; that is carried into --color-error
+ * below to match it.
+ */
+@plugin "daisyui/theme" {
+  name: "gerenciador-dark";
+  default: true;
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: #161826;
+  --color-base-200: #232532;
+  --color-base-300: #12131c;
+  --color-base-content: #e9e9ed;
+
+  --color-primary: #9184d9;
+  --color-primary-content: #161826;
+
+  --color-secondary: #a7a1db;
+  --color-secondary-content: #161826;
+
+  --color-accent: #796cbf;
+  --color-accent-content: #f5f4ff;
+
+  --color-neutral: #3f424d;
+  --color-neutral-content: #e9e9ed;
+
+  --color-info: #b5abfc;
+  --color-info-content: #161826;
+
+  --color-success: #b5abfc;
+  --color-success-content: #161826;
+
+  --color-warning: #b5afe8;
+  --color-warning-content: #161826;
+
+  --color-error: #d2cefd;
+  --color-error-content: #161826;
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
+
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-base-100 text-base-content;
+  font-family: "Inter", system-ui, sans-serif;
+}

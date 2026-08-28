@@ -1,8 +1,15 @@
-<h2 mat-dialog-title>Excluir tarefa</h2>
-<mat-dialog-content>
-  Tem certeza que deseja excluir "{{ data.taskTitle }}"? Essa ação não pode ser desfeita.
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-stroked-button (click)="cancel()">Cancelar</button>
-  <button mat-flat-button color="warn" (click)="confirm()">Excluir</button>
-</mat-dialog-actions>
+<dialog #dialogEl class="modal" (cancel)="cancel()">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="del-dialog-title">
+    <h2 class="text-lg font-medium" id="del-dialog-title">Excluir tarefa</h2>
+    <p class="py-4 text-sm text-base-content/80">
+      Tem certeza que deseja excluir "{{ taskTitle }}"? Essa ação não pode ser desfeita.
+    </p>
+    <div class="modal-action">
+      <button type="button" class="btn btn-outline" (click)="cancel()">Cancelar</button>
+      <button type="button" class="btn btn-outline btn-primary" (click)="confirm()">Excluir</button>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button type="button" (click)="cancel()" aria-label="Fechar">close</button>
+  </form>
+</dialog>

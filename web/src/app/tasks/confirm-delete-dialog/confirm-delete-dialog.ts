@@ -1,29 +1,31 @@
-import { Component, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
-
-export interface ConfirmDeleteDialogData {
-  taskTitle: string;
-}
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-confirm-delete-dialog',
-  imports: [MatButtonModule, MatDialogModule],
   templateUrl: './confirm-delete-dialog.html',
 })
-export class ConfirmDeleteDialog {
-  private readonly dialogRef = inject(MatDialogRef<ConfirmDeleteDialog>);
-  readonly data = inject<ConfirmDeleteDialogData>(MAT_DIALOG_DATA);
+export class ConfirmDeleteDialog implements AfterViewInit {
+  @Input() taskTitle = '';
+  @Output() readonly confirmed = new EventEmitter<void>();
+  @Output() readonly cancelled = new EventEmitter<void>();
+
+  @ViewChild('dialogEl') private readonly dialogEl!: ElementRef<HTMLDialogElement>;
+
+  ngAfterViewInit(): void {
+    this.dialogEl.nativeElement.showModal();
+  }
+
+  close(): void {
+    this.dialogEl.nativeElement.close();
+  }
 
   confirm(): void {
-    this.dialogRef.close(true);
+    this.confirmed.emit();
+    this.close();
   }
 
   cancel(): void {
-    this.dialogRef.close(false);
+    this.cancelled.emit();
+    this.close();
   }
 }

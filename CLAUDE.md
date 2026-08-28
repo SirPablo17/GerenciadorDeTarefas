@@ -16,6 +16,8 @@ Every change to the system goes through `openspec/` before/while it's implemente
 
 When asked to add or modify a feature, follow this flow rather than editing code directly: propose the change (`openspec-propose`), implement its tasks (`openspec-apply-change`), sync deltas into `openspec/specs/` (`openspec-sync-specs`), then archive (`openspec-archive-change`). All changes in `openspec/changes/` are currently archived (i.e. there is no change in flight) — check there first to see if one is already in progress before starting new work.
 
+Before running `/opsx:apply` — whether starting a change's tasks or resuming a partially-implemented one — invoke the `sdd-reviewer` subagent to review the code already implemented so far against that change's `proposal.md`/`design.md`/`tasks.md` and this file's conventions.
+
 ## Commands
 
 ### Backend (`src/`, .NET 10)
@@ -61,7 +63,7 @@ Dependency direction: `Api -> Application -> Domain`, with `Infrastructure` impl
 
 Auth: JWT bearer tokens (`GerenciadorDeTarefas.Infrastructure.Auth`), configured from the `Jwt` section in `appsettings.json`. Every `/tasks` endpoint requires a valid token and is scoped to the authenticated user. On the frontend, the token lives in `localStorage`; any `401` from an authenticated call ends the session and redirects to `/login`, preserving the originally requested route so the user returns to it after logging back in (see archived changes' `design.md` for the `localStorage`-vs-`httpOnly-cookie` trade-off discussion).
 
-Frontend uses standalone components + signals (no NgRx), Angular Material for UI, and Reactive Forms with validation mirroring the API's rules.
+Frontend uses standalone components + signals (no NgRx), Tailwind CSS + DaisyUI for UI (custom `gerenciador-dark` theme in `web/src/styles.css`, sampled from `prototipo/`'s design tokens), and Reactive Forms with validation mirroring the API's rules.
 
 ## Other directories
 

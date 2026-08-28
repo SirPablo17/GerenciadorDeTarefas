@@ -1,12 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatDialog } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { AuthService } from '../../core/auth.service';
 import { TaskDto, TaskItemStatus } from '../../core/models';
 import { ConfirmDeleteDialog } from '../confirm-delete-dialog/confirm-delete-dialog';
@@ -20,24 +13,16 @@ const STATUS_OPTIONS = [
 
 @Component({
   selector: 'app-task-list',
-  imports: [
-    MatButtonModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatSelectModule,
-    MatToolbarModule,
-  ],
+  imports: [ConfirmDeleteDialog],
   templateUrl: './task-list.html',
-  styleUrl: './task-list.css',
 })
 export class TaskList implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly dialog = inject(MatDialog);
   protected readonly tasksService = inject(TasksService);
 
   readonly statusOptions = STATUS_OPTIONS;
+  readonly deleteTarget = signal<TaskDto | null>(null);
 
   ngOnInit(): void {
     this.tasksService.load();
@@ -69,14 +54,19 @@ export class TaskList implements OnInit {
   }
 
   deleteTask(task: TaskDto): void {
-    const dialogRef = this.dialog.open(ConfirmDeleteDialog, {
-      data: { taskTitle: task.title },
-    });
+    this.deleteTarget.set(task);
+  }
 
-    dialogRef.afterClosed().subscribe((confirmed) => {
-      if (confirmed) {
-        this.tasksService.remove(task.id).subscribe(() => this.tasksService.load());
-      }
-    });
+  confirmDelete(): void {
+    const task = this.deleteTarget();
+    if (!task) {
+      return;
+    }
+    this.tasksService.remove(task.id).subscribe(() => this.tasksService.load());
+    this.deleteTarget.set(null);
+  }
+
+  cancelDelete(): void {
+    this.deleteTarget.set(null);
   }
 }
