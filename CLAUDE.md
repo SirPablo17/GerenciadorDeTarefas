@@ -32,6 +32,8 @@ dotnet test --filter "FullyQualifiedName~TaskServiceTests.MethodName"  # run a s
 
 **Always use `--launch-profile http`, never `https`.** `launchSettings.json` defines both; the `https` profile also opens port 7034, and `UseHttpsRedirection` then redirects every HTTP call there. The frontend's dev proxy only forwards that redirect instead of following it, and the dev HTTPS cert isn't trusted (`dotnet dev-certs https --trust` isn't set up), so with `https` selected, login (and everything else) breaks in the frontend.
 
+Every new backend feature (service method, validator rule, endpoint behavior) must come with a corresponding unit test in `tests/GerenciadorDeTarefas.Tests/Application/{Services,Validators}`. When implementing a change's `tasks.md`, add/verify a unit-test task for each new piece of behavior rather than treating tests as optional cleanup.
+
 ### Frontend (`web/`, Angular 22)
 
 ```bash

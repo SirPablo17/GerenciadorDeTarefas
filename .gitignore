@@ -14,6 +14,11 @@ obj/
 *.db
 *.db-shm
 *.db-wal
+*.db-journal
+
+## dotnet test results
+TestResults/
+*.trx
 
 ## OS
 .DS_Store
@@ -21,3 +26,6 @@ Thumbs.db
 
 ## prototipo
 prototipo/
+
+## Claude Code local settings
+.claude/settings.local.json
