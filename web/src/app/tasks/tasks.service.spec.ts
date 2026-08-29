@@ -29,6 +29,43 @@ describe('TasksService', () => {
     httpMock.verify();
   });
 
+  it('loads tasks via GET /tasks and populates tasks()', () => {
+    service.load();
+
+    expect(service.loading()).toBe(true);
+
+    const req = httpMock.expectOne('/tasks');
+    expect(req.request.method).toBe('GET');
+    req.flush([task]);
+
+    expect(service.loading()).toBe(false);
+    expect(service.error()).toBe(false);
+    expect(service.tasks()).toEqual([task]);
+  });
+
+  it('sets error() and clears loading() when load() fails', () => {
+    service.load();
+
+    const req = httpMock.expectOne('/tasks');
+    req.flush({ title: 'server error' }, { status: 500, statusText: 'Internal Server Error' });
+
+    expect(service.loading()).toBe(false);
+    expect(service.error()).toBe(true);
+    expect(service.tasks()).toBeNull();
+  });
+
+  it('fetches a single task via GET /tasks/{id}', () => {
+    let result: TaskDto | undefined;
+
+    service.getById('task-1').subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne('/tasks/task-1');
+    expect(req.request.method).toBe('GET');
+    req.flush(task);
+
+    expect(result).toEqual(task);
+  });
+
   it('creates a task via POST /tasks and propagates the created task', () => {
     const request = { title: 'New', description: '', status: TaskItemStatus.Pending };
     let result: TaskDto | undefined;

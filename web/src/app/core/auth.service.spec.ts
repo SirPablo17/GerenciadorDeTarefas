@@ -27,6 +27,7 @@ describe('AuthService', () => {
     const restored = TestBed.inject(AuthService);
 
     expect(restored.isAuthenticated()).toBe(true);
+    expect(restored.token()).toBe('stored-token');
   });
 
   it('starts unauthenticated when there is no stored token', () => {
@@ -68,6 +69,54 @@ describe('AuthService', () => {
     loginReq.flush(response);
 
     expect(authService.isAuthenticated()).toBe(true);
+  });
+
+  it('does not persist a session when login fails', () => {
+    const authService = TestBed.inject(AuthService);
+    let errorStatus: number | undefined;
+
+    authService
+      .login({ email: 'user@example.com', password: 'wrong' })
+      .subscribe({ error: (err) => (errorStatus = err.status) });
+
+    const req = httpMock.expectOne('/auth/login');
+    req.flush({ title: 'invalid credentials' }, { status: 401, statusText: 'Unauthorized' });
+
+    expect(errorStatus).toBe(401);
+    expect(authService.isAuthenticated()).toBe(false);
+    expect(localStorage.getItem('auth.token')).toBeNull();
+  });
+
+  it('does not attempt to log in when registration fails', () => {
+    const authService = TestBed.inject(AuthService);
+    let errorStatus: number | undefined;
+
+    authService
+      .register({ email: 'taken@example.com', password: 'Secret123' })
+      .subscribe({ error: (err) => (errorStatus = err.status) });
+
+    const registerReq = httpMock.expectOne('/auth/register');
+    registerReq.flush({ title: 'email already in use' }, { status: 409, statusText: 'Conflict' });
+
+    expect(errorStatus).toBe(409);
+    expect(authService.isAuthenticated()).toBe(false);
+  });
+
+  it('ends the session and navigates to /login with the given returnUrl, on forceLogout', () => {
+    localStorage.setItem('auth.token', 'stored-token');
+    localStorage.setItem('auth.expiresAt', '2026-01-01T00:00:00Z');
+    const loggedIn = TestBed.inject(AuthService);
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate');
+
+    loggedIn.forceLogout('/tasks/42');
+
+    expect(loggedIn.isAuthenticated()).toBe(false);
+    expect(localStorage.getItem('auth.token')).toBeNull();
+    expect(navigateSpy).toHaveBeenCalledWith(['/login'], {
+      queryParams: { returnUrl: '/tasks/42' },
+      replaceUrl: true,
+    });
   });
 
   it('clears session state and storage, and navigates to /login, on logout', () => {

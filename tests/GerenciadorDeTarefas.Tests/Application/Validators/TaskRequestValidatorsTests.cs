@@ -31,6 +31,22 @@ public class CreateTaskRequestValidatorTests
 
         Assert.False(result.IsValid);
     }
+
+    [Fact]
+    public void Validate_WithDescriptionTooLong_HasErrors()
+    {
+        var result = _sut.Validate(new CreateTaskRequest { Title = "Comprar pão", Description = new string('a', 2001) });
+
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_WithInvalidStatus_HasErrors()
+    {
+        var result = _sut.Validate(new CreateTaskRequest { Title = "Comprar pão", Status = (TaskItemStatus)99 });
+
+        Assert.False(result.IsValid);
+    }
 }
 
 public class UpdateTaskRequestValidatorTests
@@ -49,6 +65,30 @@ public class UpdateTaskRequestValidatorTests
     public void Validate_WithEmptyTitle_HasErrors()
     {
         var result = _sut.Validate(new UpdateTaskRequest { Title = "" });
+
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_WithTitleTooLong_HasErrors()
+    {
+        var result = _sut.Validate(new UpdateTaskRequest { Title = new string('a', 201) });
+
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_WithDescriptionTooLong_HasErrors()
+    {
+        var result = _sut.Validate(new UpdateTaskRequest { Title = "Comprar pão", Description = new string('a', 2001) });
+
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_WithInvalidStatus_HasErrors()
+    {
+        var result = _sut.Validate(new UpdateTaskRequest { Title = "Comprar pão", Status = (TaskItemStatus)99 });
 
         Assert.False(result.IsValid);
     }
