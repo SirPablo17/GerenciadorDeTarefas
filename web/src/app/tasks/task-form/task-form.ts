@@ -24,6 +24,7 @@ export class TaskForm implements OnInit {
   private readonly route = inject(ActivatedRoute);
 
   private taskId: string | null = null;
+  private loadedStatus: TaskItemStatus | null = null;
 
   readonly statusOptions = STATUS_OPTIONS;
 
@@ -51,6 +52,7 @@ export class TaskForm implements OnInit {
             description: task.description,
             status: task.status,
           });
+          this.loadedStatus = task.status;
           this.loading.set(false);
         },
         error: () => {
@@ -76,7 +78,21 @@ export class TaskForm implements OnInit {
       : this.tasksService.create(request);
 
     save$.subscribe({
-      next: () => this.router.navigateByUrl('/tasks'),
+      next: () => {
+        const willBeCompleted = request.status === TaskItemStatus.Completed;
+        const crossedCompletedBoundary =
+          this.loadedStatus !== null && willBeCompleted !== (this.loadedStatus === TaskItemStatus.Completed);
+
+        this.router.navigateByUrl('/tasks', {
+          state: crossedCompletedBoundary
+            ? {
+                statusChangeAnnouncement: willBeCompleted
+                  ? 'Tarefa concluída. Veja na aba Concluídas.'
+                  : 'Tarefa reaberta. Veja na aba Ativas.',
+              }
+            : undefined,
+        });
+      },
       error: (error: unknown) => {
         this.submitting.set(false);
         this.errorMessage.set(this.extractMessage(error));

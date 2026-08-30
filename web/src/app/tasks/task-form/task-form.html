@@ -42,11 +42,11 @@
 
             <div>
               <label class="label" id="task-status-label">Status</label>
-              <div class="join" role="radiogroup" aria-labelledby="task-status-label">
+              <div class="flex flex-wrap gap-2" role="radiogroup" aria-labelledby="task-status-label">
                 @for (option of statusOptions; track option.value) {
                   <input
                     type="radio"
-                    class="join-item btn btn-sm"
+                    class="btn btn-sm"
                     [attr.aria-label]="option.label"
                     formControlName="status"
                     [value]="option.value"

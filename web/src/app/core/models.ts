@@ -21,6 +21,7 @@ export enum TaskItemStatus {
 
 export interface TaskDto {
   id: string;
+  number: number;
   title: string;
   description: string;
   status: TaskItemStatus;

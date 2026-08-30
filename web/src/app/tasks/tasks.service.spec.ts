@@ -10,6 +10,7 @@ describe('TasksService', () => {
 
   const task: TaskDto = {
     id: 'task-1',
+    number: 1,
     title: 'Title',
     description: 'Description',
     status: TaskItemStatus.Pending,
