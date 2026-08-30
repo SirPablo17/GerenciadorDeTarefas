@@ -9,9 +9,10 @@ public class TaskRepository(AppDbContext dbContext) : ITaskRepository
     public Task<TaskItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         dbContext.Tasks.FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
-    public async Task<IReadOnlyList<TaskItem>> ListByUserAsync(Guid userId, CancellationToken cancellationToken = default) =>
+    public async Task<IReadOnlyList<TaskItem>> ListByUserAsync(Guid userId, TaskItemStatus? status = null, CancellationToken cancellationToken = default) =>
         await dbContext.Tasks
             .Where(t => t.UserId == userId)
+            .Where(t => status == null || t.Status == status.Value)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync(cancellationToken);
 

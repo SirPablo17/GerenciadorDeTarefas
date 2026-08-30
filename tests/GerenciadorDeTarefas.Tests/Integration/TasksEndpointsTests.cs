@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using GerenciadorDeTarefas.Application.DTOs;
+using GerenciadorDeTarefas.Domain.Entities;
 
 namespace GerenciadorDeTarefas.Tests.Integration;
 
@@ -105,6 +106,78 @@ public class TasksEndpointsTests(CustomWebApplicationFactory factory) : IClassFi
 
         var getResponse = await client.GetAsync($"/tasks/{created.Id}");
         Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Create_MultipleTasksForSameUser_AssignsSequentialNumbers()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+
+        var first = await (await client.PostAsJsonAsync("/tasks", new CreateTaskRequest { Title = "Task 1" }))
+            .Content.ReadFromJsonAsync<TaskDto>();
+        var second = await (await client.PostAsJsonAsync("/tasks", new CreateTaskRequest { Title = "Task 2" }))
+            .Content.ReadFromJsonAsync<TaskDto>();
+
+        Assert.Equal(1, first?.Number);
+        Assert.Equal(2, second?.Number);
+    }
+
+    [Fact]
+    public async Task Create_ForDifferentUsers_EachStartsNumberingAtOne()
+    {
+        var firstUserClient = await CreateAuthenticatedClientAsync();
+        var secondUserClient = await CreateAuthenticatedClientAsync();
+
+        var firstUsersTask = await (await firstUserClient.PostAsJsonAsync("/tasks", new CreateTaskRequest { Title = "Task" }))
+            .Content.ReadFromJsonAsync<TaskDto>();
+        var secondUsersTask = await (await secondUserClient.PostAsJsonAsync("/tasks", new CreateTaskRequest { Title = "Task" }))
+            .Content.ReadFromJsonAsync<TaskDto>();
+
+        Assert.Equal(1, firstUsersTask?.Number);
+        Assert.Equal(1, secondUsersTask?.Number);
+    }
+
+    [Fact]
+    public async Task Create_AfterDeletingHighestNumberedTask_DoesNotReuseItsNumber()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var first = await (await client.PostAsJsonAsync("/tasks", new CreateTaskRequest { Title = "Task 1" }))
+            .Content.ReadFromJsonAsync<TaskDto>();
+        var second = await (await client.PostAsJsonAsync("/tasks", new CreateTaskRequest { Title = "Task 2" }))
+            .Content.ReadFromJsonAsync<TaskDto>();
+        await client.DeleteAsync($"/tasks/{second!.Id}");
+
+        var third = await (await client.PostAsJsonAsync("/tasks", new CreateTaskRequest { Title = "Task 3" }))
+            .Content.ReadFromJsonAsync<TaskDto>();
+
+        Assert.Equal(1, first?.Number);
+        Assert.Equal(2, second.Number);
+        Assert.True(third?.Number > second.Number);
+    }
+
+    [Fact]
+    public async Task List_FilteredByStatus_ReturnsOnlyMatchingTasks()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var pending = await (await client.PostAsJsonAsync("/tasks", new CreateTaskRequest { Title = "Pendente", Status = TaskItemStatus.Pending }))
+            .Content.ReadFromJsonAsync<TaskDto>();
+        var completed = await (await client.PostAsJsonAsync("/tasks", new CreateTaskRequest { Title = "Concluída", Status = TaskItemStatus.Completed }))
+            .Content.ReadFromJsonAsync<TaskDto>();
+
+        var filteredResponse = await client.GetAsync("/tasks?status=Completed");
+        var unfilteredResponse = await client.GetAsync("/tasks");
+        var invalidResponse = await client.GetAsync("/tasks?status=NotAStatus");
+
+        Assert.Equal(HttpStatusCode.OK, filteredResponse.StatusCode);
+        var filteredTasks = await filteredResponse.Content.ReadFromJsonAsync<List<TaskDto>>();
+        Assert.Single(filteredTasks!);
+        Assert.Equal(completed!.Id, filteredTasks![0].Id);
+
+        var unfilteredTasks = await unfilteredResponse.Content.ReadFromJsonAsync<List<TaskDto>>();
+        Assert.Equal(2, unfilteredTasks?.Count);
+        Assert.Contains(unfilteredTasks!, t => t.Id == pending!.Id);
+
+        Assert.Equal(HttpStatusCode.BadRequest, invalidResponse.StatusCode);
     }
 
     [Fact]

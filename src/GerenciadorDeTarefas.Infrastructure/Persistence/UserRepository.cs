@@ -17,4 +17,17 @@ public class UserRepository(AppDbContext dbContext) : IUserRepository
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<int> GetAndIncrementNextTaskNumberAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var assignedNumbers = await dbContext.Database
+            .SqlQuery<int>($"""
+                UPDATE Users SET NextTaskNumber = NextTaskNumber + 1
+                WHERE Id = {userId}
+                RETURNING NextTaskNumber - 1 AS Value
+                """)
+            .ToListAsync(cancellationToken);
+
+        return assignedNumbers.Single();
+    }
 }

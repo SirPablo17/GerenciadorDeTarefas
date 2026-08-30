@@ -5,14 +5,17 @@ using GerenciadorDeTarefas.Domain.Repositories;
 
 namespace GerenciadorDeTarefas.Application.Services;
 
-public class TaskService(ITaskRepository taskRepository) : ITaskService
+public class TaskService(ITaskRepository taskRepository, IUserRepository userRepository) : ITaskService
 {
     public async Task<TaskDto> CreateAsync(Guid userId, CreateTaskRequest request, CancellationToken cancellationToken = default)
     {
+        var number = await userRepository.GetAndIncrementNextTaskNumberAsync(userId, cancellationToken);
+
         var now = DateTime.UtcNow;
         var task = new TaskItem
         {
             Id = Guid.NewGuid(),
+            Number = number,
             Title = request.Title,
             Description = request.Description,
             Status = request.Status,
@@ -25,9 +28,9 @@ public class TaskService(ITaskRepository taskRepository) : ITaskService
         return ToDto(task);
     }
 
-    public async Task<IReadOnlyList<TaskDto>> ListByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<TaskDto>> ListByUserAsync(Guid userId, TaskItemStatus? status = null, CancellationToken cancellationToken = default)
     {
-        var tasks = await taskRepository.ListByUserAsync(userId, cancellationToken);
+        var tasks = await taskRepository.ListByUserAsync(userId, status, cancellationToken);
         return tasks.Select(ToDto).ToList();
     }
 
@@ -70,6 +73,7 @@ public class TaskService(ITaskRepository taskRepository) : ITaskService
     private static TaskDto ToDto(TaskItem task) => new()
     {
         Id = task.Id,
+        Number = task.Number,
         Title = task.Title,
         Description = task.Description,
         Status = task.Status,

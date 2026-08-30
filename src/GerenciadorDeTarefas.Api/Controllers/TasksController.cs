@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using GerenciadorDeTarefas.Application.DTOs;
 using GerenciadorDeTarefas.Application.Services;
+using GerenciadorDeTarefas.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,9 +21,9 @@ public class TasksController(ITaskService taskService) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<TaskDto>>> List(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<TaskDto>>> List([FromQuery] TaskItemStatus? status, CancellationToken cancellationToken)
     {
-        var tasks = await taskService.ListByUserAsync(CurrentUserId, cancellationToken);
+        var tasks = await taskService.ListByUserAsync(CurrentUserId, status, cancellationToken);
         return Ok(tasks);
     }
 
