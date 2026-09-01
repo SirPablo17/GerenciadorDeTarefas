@@ -76,14 +76,14 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
-    using (var scope = app.Services.CreateScope())
-    {
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        dbContext.Database.Migrate();
-    }
-
     app.UseSwagger();
     app.UseSwaggerUI();
 }
