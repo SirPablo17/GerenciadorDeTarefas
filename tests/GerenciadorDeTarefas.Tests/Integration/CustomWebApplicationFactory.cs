@@ -1,12 +1,17 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Testcontainers.PostgreSql;
 
 namespace GerenciadorDeTarefas.Tests.Integration;
 
-public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly string _dbPath = Path.Combine(Path.GetTempPath(), $"gerenciadordetarefas-tests-{Guid.NewGuid()}.db");
+    private readonly PostgreSqlContainer _postgresContainer = new PostgreSqlBuilder("postgres:18-alpine").Build();
+
+    public Task InitializeAsync() => _postgresContainer.StartAsync();
+
+    Task IAsyncLifetime.DisposeAsync() => _postgresContainer.DisposeAsync().AsTask();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -16,20 +21,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = $"Data Source={_dbPath}"
+                ["ConnectionStrings:DefaultConnection"] = _postgresContainer.GetConnectionString(),
             });
         });
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-
-        if (disposing)
-        {
-            File.Delete(_dbPath);
-            File.Delete(_dbPath + "-shm");
-            File.Delete(_dbPath + "-wal");
-        }
     }
 }

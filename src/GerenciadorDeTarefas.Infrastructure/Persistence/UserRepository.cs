@@ -22,9 +22,9 @@ public class UserRepository(AppDbContext dbContext) : IUserRepository
     {
         var assignedNumbers = await dbContext.Database
             .SqlQuery<int>($"""
-                UPDATE Users SET NextTaskNumber = NextTaskNumber + 1
-                WHERE Id = {userId}
-                RETURNING NextTaskNumber - 1 AS Value
+                UPDATE "Users" SET "NextTaskNumber" = "NextTaskNumber" + 1
+                WHERE "Id" = {userId}
+                RETURNING "NextTaskNumber" - 1 AS "Value"
                 """)
             .ToListAsync(cancellationToken);
 
