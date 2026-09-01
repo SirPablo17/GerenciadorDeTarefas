@@ -47,6 +47,28 @@ npm run build                 # ng build
 
 The dev server proxy (`web/proxy.conf.js`) forwards `/auth` and `/tasks` to `http://localhost:5246`. The API must be running (with the `http` profile) before login/register/tasks screens will work.
 
+#### Angular 22 conventions
+
+Several patterns that are still common in older Angular code are wrong in this project:
+
+- Don't write `standalone: true` or `changeDetection: ChangeDetectionStrategy.OnPush` — defaults since v19 and v22 respectively.
+- `input()`, `output()`, `model()` functions, never the `@Input()`/`@Output()` decorators.
+- `inject()`, never constructor injection. New singleton services use the `@Service` decorator, not `@Injectable({ providedIn: 'root' })`.
+- Native control flow `@if` / `@for` / `@switch`, never `*ngIf` / `*ngFor` / `*ngSwitch`. Every `@for` needs a stable `track`.
+- Host bindings go in the decorator's `host` object, never `@HostBinding` / `@HostListener`.
+- `class` / `style` bindings, never `ngClass` / `ngStyle`.
+- Signals for state: `signal()`, `computed()` for derived values, `linkedSignal()` for derived-but-editable. Never `mutate()` — use `set()` or `update()`. `effect()` is a last resort, not the default way to sync state.
+- Feature routes lazy-load via `loadComponent`. `NgOptimizedImage` for static images.
+- Accessibility floor: semantic HTML before ARIA, visible focus, a label on every control, nothing communicated by color alone.
+
+Forms stay on **Reactive Forms** across the app. Signal Forms (`@angular/forms/signals`) are stable in v22 and would be the modern choice, but running two form systems in one app costs more than it's worth — adopting them should be its own OpenSpec change that migrates the existing screens, not a decision made per component.
+
+Tests run on **Vitest**, not Karma/Jasmine — mocking syntax differs, so don't copy Jasmine patterns from older Angular examples. Every new frontend behavior (service method, guard branch, interceptor case, component interaction) gets a spec alongside it, same rule as the backend.
+
+Don't run `ng update` or add frontend dependencies without asking first.
+
+When unsure about a v22 API, check `https://angular.dev/assets/context/best-practices.md` instead of guessing from memory.
+
 ## Architecture
 
 Backend is layered (Clean Architecture-ish), frontend is a separate Angular project outside the .NET solution:
