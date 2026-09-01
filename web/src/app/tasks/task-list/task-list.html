@@ -1,5 +1,5 @@
 <div class="min-h-screen flex flex-col">
-  <nav class="flex items-center gap-4 px-4 py-3 sm:px-8 border-b border-base-content/10">
+  <nav class="flex items-center flex-wrap gap-4 px-4 py-3 sm:px-8 border-b border-base-content/10">
     <span class="text-lg font-medium mr-auto">Gerenciador de Tarefas</span>
     <button type="button" class="btn btn-outline btn-primary btn-sm" (click)="newTask()">
       <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor">
@@ -21,10 +21,18 @@
     </button>
   </nav>
 
-  <div class="flex-1 w-full max-w-6xl mx-auto px-4 py-6 sm:px-8">
+  <main class="flex-1 w-full max-w-6xl mx-auto px-4 py-6 sm:px-8">
     <h1 class="text-xl font-medium mb-6">Minhas tarefas</h1>
 
     <div class="sr-only" aria-live="polite">{{ statusChangeAnnouncement() }}</div>
+
+    @if (statusChangeAnnouncement()) {
+      <div class="toast toast-bottom toast-center z-10" aria-hidden="true">
+        <div class="alert alert-info">
+          <span>{{ statusChangeAnnouncement() }}</span>
+        </div>
+      </div>
+    }
 
     <div class="tabs tabs-box w-fit mb-6" role="tablist">
       <button
@@ -39,7 +47,7 @@
         [disabled]="tasksService.loading() || tasksService.error()"
         (click)="selectTab('active')"
       >
-        Ativas ({{ activeTasks()?.length ?? 0 }})
+        Ativas @if (tasksService.tasks(); as tasks) {({{ activeTasks()?.length ?? 0 }})}
       </button>
       <button
         #completedTabButton
@@ -53,7 +61,7 @@
         [disabled]="tasksService.loading() || tasksService.error()"
         (click)="selectTab('completed')"
       >
-        Concluídas ({{ completedTasks()?.length ?? 0 }})
+        Concluídas @if (tasksService.tasks(); as tasks) {({{ completedTasks()?.length ?? 0 }})}
       </button>
     </div>
 
@@ -120,7 +128,7 @@
         }
       }
     </div>
-  </div>
+  </main>
 </div>
 
 <ng-template #emptyStateIcon>
@@ -146,21 +154,21 @@
         }
       }
 
-      <div class="card-title text-base gap-2">
+      <h2 class="card-title text-base gap-2">
         <span class="text-xs font-normal text-base-content/70" [attr.aria-label]="'Tarefa número ' + task.number"
           >#{{ task.number }}</span
         >
         {{ task.title }}
-      </div>
+      </h2>
 
       @if (task.description) {
-        <p class="text-sm text-base-content/80 line-clamp-3">{{ task.description }}</p>
+        <p class="text-sm text-base-content/80 line-clamp-3" [title]="task.description">{{ task.description }}</p>
       }
 
       <div class="flex items-center gap-2 flex-wrap mt-2">
         <select
           class="select select-sm w-auto"
-          aria-label="Status"
+          [attr.aria-label]="'Status da tarefa ' + task.title"
           (change)="changeStatus(task, +$any($event.target).value)"
         >
           @for (option of statusOptions; track option.value) {
@@ -184,7 +192,7 @@
           type="button"
           class="btn btn-outline btn-square btn-sm"
           (click)="deleteTask(task)"
-          aria-label="Excluir tarefa"
+          [attr.aria-label]="'Excluir tarefa ' + task.title"
         >
           <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor">
             <rect x="44" y="56" width="168" height="22" rx="8" />

@@ -1,6 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, ElementRef, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { TaskDto, TaskItemStatus } from '../../core/models';
 import { ConfirmDeleteDialog } from '../confirm-delete-dialog/confirm-delete-dialog';
@@ -22,6 +22,7 @@ type TaskTab = 'active' | 'completed';
 export class TaskList implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   protected readonly tasksService = inject(TasksService);
 
   readonly statusOptions = STATUS_OPTIONS;
@@ -43,18 +44,36 @@ export class TaskList implements OnInit {
     return tasks === null ? null : tasks.filter((task) => task.status === TaskItemStatus.Completed);
   });
 
+  private toastTimeoutId?: ReturnType<typeof setTimeout>;
+
   ngOnInit(): void {
     this.tasksService.load();
 
+    if (this.route.snapshot.queryParamMap.get('tab') === 'completed') {
+      this.selectedTab.set('completed');
+    }
+
     const navigationState = history.state as { statusChangeAnnouncement?: string } | null;
     if (navigationState?.statusChangeAnnouncement) {
-      this.statusChangeAnnouncement.set(navigationState.statusChangeAnnouncement);
+      this.announce(navigationState.statusChangeAnnouncement);
       history.replaceState({}, '', location.href);
     }
   }
 
   selectTab(tab: TaskTab): void {
     this.selectedTab.set(tab);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  private announce(message: string): void {
+    this.statusChangeAnnouncement.set(message);
+    clearTimeout(this.toastTimeoutId);
+    this.toastTimeoutId = setTimeout(() => this.statusChangeAnnouncement.set(''), 4000);
   }
 
   retry(): void {
@@ -66,11 +85,11 @@ export class TaskList implements OnInit {
   }
 
   newTask(): void {
-    this.router.navigateByUrl('/tasks/new');
+    this.router.navigate(['/tasks/new'], { state: { fromTab: this.selectedTab() } });
   }
 
   editTask(id: string): void {
-    this.router.navigateByUrl(`/tasks/${id}/edit`);
+    this.router.navigate(['/tasks', id, 'edit'], { state: { fromTab: this.selectedTab() } });
   }
 
   changeStatus(task: TaskDto, status: TaskItemStatus): void {
@@ -82,17 +101,22 @@ export class TaskList implements OnInit {
     const crossesTabBoundary = willBeCompleted !== (this.selectedTab() === 'completed');
     if (crossesTabBoundary) {
       // The task is about to leave the tab being viewed — move focus to the
-      // (still-visible) tab button before the card disappears, and announce
-      // the move for screen-reader users, since nothing else on screen does.
+      // (still-visible) tab button before the card disappears, since nothing
+      // else on screen does once the update succeeds.
       this.focusTabButton(this.selectedTab());
-      this.statusChangeAnnouncement.set(
-        willBeCompleted ? 'Tarefa concluída. Veja na aba Concluídas.' : 'Tarefa reaberta. Veja na aba Ativas.',
-      );
     }
 
-    this.tasksService
-      .update(task.id, { title: task.title, description: task.description, status })
-      .subscribe(() => this.tasksService.load());
+    this.tasksService.update(task.id, { title: task.title, description: task.description, status }).subscribe({
+      next: () => {
+        if (crossesTabBoundary) {
+          this.announce(
+            willBeCompleted ? 'Tarefa concluída. Veja na aba Concluídas.' : 'Tarefa reaberta. Veja na aba Ativas.',
+          );
+        }
+        this.tasksService.load();
+      },
+      error: () => this.announce('Não foi possível atualizar o status. Tente novamente.'),
+    });
   }
 
   private focusTabButton(tab: TaskTab): void {
@@ -109,8 +133,11 @@ export class TaskList implements OnInit {
     if (!task) {
       return;
     }
-    this.tasksService.remove(task.id).subscribe(() => this.tasksService.load());
     this.deleteTarget.set(null);
+    this.tasksService.remove(task.id).subscribe({
+      next: () => this.tasksService.load(),
+      error: () => this.announce('Não foi possível excluir a tarefa. Tente novamente.'),
+    });
   }
 
   cancelDelete(): void {

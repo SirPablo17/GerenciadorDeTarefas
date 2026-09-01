@@ -2,7 +2,7 @@
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="del-dialog-title">
     <h2 class="text-lg font-medium" id="del-dialog-title">Excluir tarefa</h2>
     <p class="py-4 text-sm text-base-content/80">
-      Tem certeza que deseja excluir "{{ taskTitle }}"? Essa ação não pode ser desfeita.
+      Tem certeza que deseja excluir "{{ taskTitle() }}"? Essa ação não pode ser desfeita.
     </p>
     <div class="modal-action">
       <button type="button" class="btn btn-outline" (click)="cancel()">Cancelar</button>

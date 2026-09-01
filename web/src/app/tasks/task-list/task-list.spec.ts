@@ -153,10 +153,23 @@ describe('TaskList', () => {
 
     const activeTabButton: HTMLButtonElement = fixture.nativeElement.querySelector('#active-tab-button');
     expect(document.activeElement).toBe(activeTabButton);
-    expect(component.statusChangeAnnouncement()).toContain('Concluídas');
 
     httpMock.expectOne('/tasks/t1').flush(makeTask({ id: 't1', status: TaskItemStatus.Completed }));
+    expect(component.statusChangeAnnouncement()).toContain('Concluídas');
     flushTasks([makeTask({ id: 't1', status: TaskItemStatus.Completed })]);
+  });
+
+  it('shows an error announcement and does not reload the list when a status update fails', () => {
+    fixture.detectChanges();
+    flushTasks([makeTask({ id: 't1', status: TaskItemStatus.Pending })]);
+    fixture.detectChanges();
+
+    component.changeStatus(component.activeTasks()![0], TaskItemStatus.Completed);
+
+    httpMock.expectOne('/tasks/t1').flush('error', { status: 500, statusText: 'Server Error' });
+
+    expect(component.statusChangeAnnouncement()).toContain('Não foi possível atualizar o status');
+    expect(component.activeTasks()?.map((t) => t.id)).toEqual(['t1']);
   });
 
   it('does not move focus or announce when the status change stays within the current tab', () => {
@@ -178,6 +191,35 @@ describe('TaskList', () => {
     flushTasks([]);
 
     expect(component.statusChangeAnnouncement()).toBe('Tarefa concluída. Veja na aba Concluídas.');
+  });
+
+  it('reloads the list after a task is successfully deleted', () => {
+    fixture.detectChanges();
+    flushTasks([makeTask({ id: 't1', status: TaskItemStatus.Pending })]);
+    fixture.detectChanges();
+
+    component.deleteTarget.set(component.activeTasks()![0]);
+    component.confirmDelete();
+
+    expect(component.deleteTarget()).toBeNull();
+    httpMock.expectOne('/tasks/t1').flush(null);
+    flushTasks([]);
+
+    expect(component.activeTasks()).toEqual([]);
+  });
+
+  it('shows an error announcement and keeps the list unchanged when deletion fails', () => {
+    fixture.detectChanges();
+    flushTasks([makeTask({ id: 't1', status: TaskItemStatus.Pending })]);
+    fixture.detectChanges();
+
+    component.deleteTarget.set(component.activeTasks()![0]);
+    component.confirmDelete();
+
+    httpMock.expectOne('/tasks/t1').flush('error', { status: 500, statusText: 'Server Error' });
+
+    expect(component.statusChangeAnnouncement()).toContain('Não foi possível excluir a tarefa');
+    expect(component.activeTasks()?.map((t) => t.id)).toEqual(['t1']);
   });
 
   it("renders each task's number on its card in both tabs", () => {

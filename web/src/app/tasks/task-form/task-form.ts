@@ -24,7 +24,8 @@ export class TaskForm implements OnInit {
   private readonly route = inject(ActivatedRoute);
 
   private taskId: string | null = null;
-  private loadedStatus: TaskItemStatus | null = null;
+  private loadedStatus: TaskItemStatus | null = TaskItemStatus.Pending;
+  private returnTab: 'active' | 'completed' | null = null;
 
   readonly statusOptions = STATUS_OPTIONS;
 
@@ -40,6 +41,9 @@ export class TaskForm implements OnInit {
   readonly errorMessage = signal<string | null>(null);
 
   ngOnInit(): void {
+    const navigationState = history.state as { fromTab?: 'active' | 'completed' } | null;
+    this.returnTab = navigationState?.fromTab ?? null;
+
     this.taskId = this.route.snapshot.paramMap.get('id');
 
     if (this.taskId) {
@@ -83,7 +87,8 @@ export class TaskForm implements OnInit {
         const crossedCompletedBoundary =
           this.loadedStatus !== null && willBeCompleted !== (this.loadedStatus === TaskItemStatus.Completed);
 
-        this.router.navigateByUrl('/tasks', {
+        this.router.navigate(['/tasks'], {
+          queryParams: this.returnTab ? { tab: this.returnTab } : undefined,
           state: crossedCompletedBoundary
             ? {
                 statusChangeAnnouncement: willBeCompleted
@@ -101,7 +106,7 @@ export class TaskForm implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigateByUrl('/tasks');
+    this.router.navigate(['/tasks'], { queryParams: this.returnTab ? { tab: this.returnTab } : undefined });
   }
 
   private extractMessage(error: unknown): string {
