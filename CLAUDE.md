@@ -69,6 +69,24 @@ Don't run `ng update` or add frontend dependencies without asking first.
 
 When unsure about a v22 API, check `https://angular.dev/assets/context/best-practices.md` instead of guessing from memory.
 
+### Deployment (Docker / Render)
+
+The root `Dockerfile` builds the whole app as a single image: a Node stage runs `npm ci` + `npm run build` in `web/` and copies the Angular production output into the API's `wwwroot/`; the API (`Microsoft.NET.Sdk.Web`) serves it via `UseDefaultFiles()`/`UseStaticFiles()` plus `MapFallbackToFile("index.html")` for Angular Router's client-side routes. Frontend and backend are deployed as one Render Web Service on one origin — no CORS policy and no `environment.ts`/base-URL config in Angular.
+
+```bash
+docker build -t gerenciador-local .                                    # build the full image (API + Angular)
+docker run -p 8080:8080 \
+  -e ConnectionStrings__DefaultConnection="Host=...;Port=5432;Database=...;Username=...;Password=..." \
+  -e Jwt__Key="a-long-random-signing-secret" \
+  gerenciador-local                                                     # run it locally at http://localhost:8080
+```
+
+Required environment variables (set in the Render dashboard, never committed):
+- `ConnectionStrings__DefaultConnection` — the Supabase Postgres connection string, including password.
+- `Jwt__Key` — a strong random signing secret. **Must** be overridden in production; `appsettings.json` only ships a placeholder dev-only value.
+
+`Jwt__Issuer`, `Jwt__Audience`, and `Jwt__ExpirationMinutes` already have non-secret defaults in `appsettings.json` and don't need to be set unless you want to change them. On Render, point the Web Service at this repo with a Docker environment and the root `Dockerfile` — the listening port (8080) is auto-detected from the Dockerfile's `EXPOSE`, no `PORT` variable needed.
+
 ## Architecture
 
 Backend is layered (Clean Architecture-ish), frontend is a separate Angular project outside the .NET solution:
